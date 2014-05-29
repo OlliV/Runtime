@@ -39,8 +39,6 @@ size_t modbus_read_iregisters(struct modbus_frame *frame)
     size_t addr = req->s_addr;
     size_t wr = 0;
 
-    //return modbus_generror(MODBUS_GET_ERR(frame), 1, 1);
-    /* XXX Handle errors */
     for (size_t i = 0; i < (__modbus_app_mem_end - __modbus_app_mem); i++) {
         const struct __modbus_addr_desc *mbad = &__modbus_app_mem[i];
         if (mbad->mb_addr == addr) {
@@ -53,14 +51,14 @@ size_t modbus_read_iregisters(struct modbus_frame *frame)
         if (addr > (req->s_addr + req->quant))
             break;
     }
-    resp->bcount = 1 + wr;
+    resp->bcount = wr;
 
     if (wr == 0) {
         return modbus_generror(MODBUS_GET_ERR(frame), MODBUS_EX_ILLDA);
     }
 
     htonresp(frame);
-    return resp->bcount;
+    return wr + 1;
 }
 
 /* Default hanlder for iregisters */

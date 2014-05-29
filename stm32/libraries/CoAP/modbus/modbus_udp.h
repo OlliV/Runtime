@@ -75,6 +75,9 @@ size_t modbus_generror(struct modbus_error *errmsg, int8_t exception);
 size_t modbus_read_iregisters(struct modbus_frame *frame);
 size_t modbus_iregister_handler(const struct __modbus_addr_desc *desc, void *req,
         size_t index);
+
+size_t modbus_read_devid(struct modbus_frame *frame);
+
 # ifdef __cplusplus
 }
 # endif

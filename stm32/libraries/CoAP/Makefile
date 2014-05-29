@@ -33,8 +33,8 @@ vpath %.c   . ./arch/enc28j60 ./arch/stm32
 
 LIB_OBJS := eth_input.o arp_input.o
 LIB_OBJS += network_config.o ip_input.o ip_output.o icmp_input.o ip_checksum.o
-LIB_OBJS += udp.o coap_input.o coap_handle.o
-LIB_OBJS += qotd.o modbus/modbus_udp.o modbus/modbus_read_iregisters.o
+LIB_OBJS += udp.o qotd.o coap_input.o coap_handle.o
+LIB_OBJS += modbus/modbus_udp.o modbus/modbus_read_iregisters.o modbus/modbus_read_devid.o
 LIB_OBJS += enc28j60_init.o ethernet_output.o
 
 #

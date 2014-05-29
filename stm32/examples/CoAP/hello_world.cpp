@@ -97,10 +97,10 @@ DEFINE_COAP_URL(hello_world, "hello", coap_hello_get_callback, coap_hello_put_ca
 
 void setup() {
     CoAP.begin();
-    inputs = 0x1ff2;
+    //inputs = 0x1ff2;
 }
 
 void loop() {
     CoAP.loop(); // Must be called at least 10 times per second, preferably more often.
-    //inputs++;
+    inputs++;
 }

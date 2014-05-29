@@ -25,10 +25,10 @@ static const modbus_fn_t modbus_fn[25] = {
     [21]    = 0, /* Write File Record */
     /* Diagnostics */
     [7]     = 0, /* Read Exception Status */
-    [8]     = 0, /* Diagnostic */
-    [11]    = 0, /* Get Com Event Counter */
-    [12]    = 0, /* Get Com Event Log */
-    [17]    = 0, /* Report Slave ID */
+    [8]     = 0, /* Diagnostic (Not valid for IP) */
+    [11]    = 0, /* Get Com Event Counter (!IP) */
+    [12]    = 0, /* Get Com Event Log (!IP) */
+    [17]    = 0, /* Report Server ID (!IP) */
 };
 
 static int ntohframe(uint8_t udp_payload[], uint16_t udp_payload_len)
@@ -67,10 +67,15 @@ void modbus_udp(uint8_t udp_payload[], uint16_t udp_payload_len)
     if (((size_t)frame->fn_code < num_elem(modbus_fn)) && modbus_fn[frame->fn_code]) {
         wr = modbus_fn[frame->fn_code](frame);
         goto out;
-    } else  if (frame->fn_code == 43) {
-         /* Read Device Identification / Encapsulated Interface Transport */
-         /* XXX */
-        wr = modbus_generror(errmsg, MODBUS_EX_ILLFN);
+    } else  if (frame->fn_code == 43) { /* MEI */
+        switch (frame->data[0]) {
+        case 0x0E:
+            /* Read Device Identification / Encapsulated Interface Transport */
+            wr = modbus_read_devid(frame);
+            break;
+        default:
+            wr = modbus_generror(errmsg, MODBUS_EX_ILLFN);
+        }
     } else {
         wr = modbus_generror(errmsg, MODBUS_EX_ILLFN);
     }

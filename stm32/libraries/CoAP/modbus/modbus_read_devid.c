@@ -2,9 +2,11 @@
 
 union devid_base {
     struct dbase_struct {
+        /* Basic */
         char * vendor_name;
         char * product_code;
         char * major_minor_version;
+        /* Regular */
         char * vendor_url;
         char * product_name;
         char * model_name;

@@ -2,7 +2,11 @@
 #include <udp.h>
 #include "modbus_udp.h"
 
-/* http://www.modbus.org/docs/Modbus_Application_Protocol_V1_1b3.pdf */
+/*
+ * Reference:
+ * http://www.modbus.org/docs/Modbus_Application_Protocol_V1_1b3.pdf
+ * http://jamod.sourceforge.net/kbase/modbus_udp.html
+ */
 
 #ifndef num_elem
 #define num_elem(x) (sizeof(x) / sizeof(*(x)))

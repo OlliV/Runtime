@@ -19,8 +19,13 @@
 
 #include <Arduino.h>
 #include <CoAP.h>
+#include <modbus/modbus_udp.h>
 
 #define HELLO_WORLD "Hello, World!"
+
+int inputs;
+DEFINE_MODBUS_IREGISTER(0x06, inputs, MODBUS_ADDR_WR);
+
 
 /**
  * A CoAP GET callback
@@ -42,9 +47,9 @@
  */
 int coap_hello_get_callback(
     const struct coap_options *const input_options,
-    const uint8_t *input_buffer, 
+    const uint8_t *input_buffer,
     size_t input_buffer_length,
-    uint8_t *output_buffer, 
+    uint8_t *output_buffer,
     size_t *output_buffer_length) {
 
     *output_buffer++ = COAP_OPTION_PAYLOAD;
@@ -60,11 +65,11 @@ int coap_hello_get_callback(
 
 int coap_hello_put_callback(
     const struct coap_options *const input_options,
-    const uint8_t *input_buffer, 
+    const uint8_t *input_buffer,
     size_t input_buffer_length,
-    uint8_t *output_buffer, 
+    uint8_t *output_buffer,
     size_t *output_buffer_length) {
-    
+
     return COAP_CODE_CHANGED;
 }
 
@@ -86,14 +91,16 @@ DEFINE_COAP_URL(hello_world, "hello", coap_hello_get_callback, coap_hello_put_ca
 
 /*
  * Note that CoAP.loop will eventually go away, once we get CoAP
- * running in its own thread.  But that will take some time.  
+ * running in its own thread.  But that will take some time.
  * It is mandatory to call CoAP.begin() from setup(), to start DHCP.
  */
 
 void setup() {
-    CoAP.begin(); 
+    CoAP.begin();
+    inputs = 0x1ff2;
 }
 
 void loop() {
     CoAP.loop(); // Must be called at least 10 times per second, preferably more often.
+    //inputs++;
 }

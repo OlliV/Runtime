@@ -43,7 +43,6 @@ void udp_input(struct udp *const udp_packet, size_t len) {
     udp_packet->udp_sport = dport;
 
     /* Find upper layer handler, if any */
-    //for (const struct udp_socket *socket = __udp_sockets;
     for (int i = 0; i < (__udp_sockets_end - __udp_sockets); i++) {
          const struct udp_socket *socket = &__udp_sockets[i];
         if (socket->udp_port == dport) {

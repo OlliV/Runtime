@@ -68,6 +68,12 @@ SECTIONS
         KEEP (*(.socket.udp.*))       /* Read-only UDP socket data structures */
         __udp_sockets_end = .;
 
+        /* Modbus application memory */
+        . = ALIGN(16);
+        __modbus_app_mem = .;
+        KEEP (*(.modbus.app_mem.*))
+        __modbus_app_mem_end = .;
+
         /*
          * XXX
          */

@@ -51,7 +51,9 @@ clean::
 	rm -f make.map
 
 $(APP):	$(APP_OBJS) $(SYSTEM_LIBS) $(PRE_OBJS) $(POST_OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(PRE_OBJS) $(APP_OBJS) --start-group $(LIBS) --end-group $(POST_OBJS) $(EMULATOR_LIBS)
+	# --whole-archive is not a good idea because we may not need everything but
+	# for less headache for now...
+	$(LD) $(LDFLAGS) -o $@ $(PRE_OBJS) $(APP_OBJS) --whole-archive $(LIBS) --no-whole-archive $(POST_OBJS) $(EMULATOR_LIBS)
 
 #
 # Define rules for producing .hex files
@@ -60,4 +62,4 @@ $(APP):	$(APP_OBJS) $(SYSTEM_LIBS) $(PRE_OBJS) $(POST_OBJS)
 .PHONY:	.hex
 
 %.hex:	%
-	$(ELF2HEX) $(EHFLAGS) $< $@
+		$(ELF2HEX) $(EHFLAGS) $< $@

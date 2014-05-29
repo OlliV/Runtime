@@ -27,16 +27,14 @@
 #include <ip.h>
 #include <udp.h>
 
-/**
- * XXX
- */
+static uint16_t udp_checksum(const struct udp *const udp, const size_t len);
 
 void udp_input(struct udp *const udp_packet, size_t len) {
+    /* XXX */
 #if 0
-    /*
-     * Verify UDP checksum
-     */
-    XXX;
+    if (udp_checksum(udp_packet, len) != udp_packet->udp_sum) {
+        return;
+    }
 #endif
 
     /* Swap ports */
@@ -45,9 +43,9 @@ void udp_input(struct udp *const udp_packet, size_t len) {
     udp_packet->udp_sport = dport;
 
     /* Find upper layer handler, if any */
-    for (const struct udp_socket *socket = __udp_sockets; 
-         socket < __udp_sockets_end;
-         socket++ /* XXX */) {
+    //for (const struct udp_socket *socket = __udp_sockets;
+    for (int i = 0; i < (__udp_sockets_end - __udp_sockets); i++) {
+         const struct udp_socket *socket = &__udp_sockets[i];
         if (socket->udp_port == dport) {
             /* XXX Update statistics */
             const uint16_t payload_len = ntohs(udp_packet->udp_len) - sizeof(struct udp);
@@ -66,9 +64,8 @@ void udp_input(struct udp *const udp_packet, size_t len) {
  * @param udp  UDP header, followed with the payload
  * @param len  UDP length, passed in register to save memory access
  */
-static inline uint16_t
-udp_checksum(
-    const struct ip *const ip, const struct udp *const udp, const size_t len) {
+static uint16_t udp_checksum(const struct udp *const udp, const size_t len) {
+    struct ip  *const  ip = (struct  ip *)((const char *)udp - sizeof(struct ip));
 
     /*
      * Phase 1: Compute the pseudo-header checksum, using
@@ -76,7 +73,7 @@ udp_checksum(
      */
 
     // Initialize pseudo-header from the end, the UDP length
-    register uint32_t checksum = len;
+    uint32_t checksum = len;
 
     // Assign a register with the pseudo-header constant value, for
     // using as a register in the ADC instruction below
@@ -85,8 +82,9 @@ udp_checksum(
 #   else
 #    define UDP_ZEROES_PROTOCOL_SHORT ((0 << 8) | IPPROTO_UDP)
 #   endif
-    register const uint32_t zeroes_protocol = UDP_ZEROES_PROTOCOL_SHORT;
+    const uint32_t zeroes_protocol = UDP_ZEROES_PROTOCOL_SHORT;
 
+#if 0 /* Disabled */
 #if defined(__thumb__) && 0//XXX remove zero here once works
 # if defined(__ARM_ARCH_6M__)
     // Add IP addresses, as 32-bit entities, using ADC
@@ -104,6 +102,7 @@ udp_checksum(
 # else
 #  error "Not implemented for ARMv7 yet.  Please do."
 # endif
+#endif /* XXX Remove this line when code above is fixed */
 #else
     checksum += (ip->ip_src.s_addr >> 16) & 0xFFFF;
     checksum += (ip->ip_src.s_addr      ) & 0xFFFF;
@@ -111,7 +110,7 @@ udp_checksum(
     checksum += (ip->ip_dst.s_addr      ) & 0xFFFF;
     checksum += zeroes_protocol;
 #endif
-    
+
     /*
      * Part 2: Compute the checksum over the UDP header and data.
      *         ip_checksum() accepts two parallel 16-bit words in its
@@ -129,19 +128,13 @@ udp_checksum(
 
 void udp_output(const void *payload, size_t payload_len) {
     struct udp *const udp = (struct udp *)((const char *)payload - sizeof(struct udp));
-    struct ip  *const  ip = (struct  ip *)((const char *)udp     - sizeof(struct ip));
     const uint16_t udp_len = payload_len + sizeof(struct udp);
 
     udp->udp_len = htons(udp_len);
+#if 0
+    udp->udp_sum = udp_checksum(udp, udp_len);
+#endif
     udp->udp_sum = 0;
-    
-    /*
-     * Clear the checksum, for now
-     */
-    udp->udp_sum = 0; // udp_checksum(ip, udp, udp_len);
-    /*
-     * Pass to lower layer.
-     */
     ip_output(udp, udp_len);
 }
 

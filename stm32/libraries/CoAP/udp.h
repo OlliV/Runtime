@@ -31,7 +31,9 @@
 
 typedef uint16_t udp_port_t;
 
-# define UDP_PORT_ECHO 7
+#define UDP_PORT_ECHO   7
+#define UDP_PORT_QOTD   17
+#define UDP_PORT_MODBUS 502
 
 struct udp {
     udp_port_t udp_sport;
@@ -64,7 +66,7 @@ struct udp_socket {
 
 # define DECLARE_UDP_SOCKET(port)                              \
     extern const struct udp_socket  __EXPAND_SOCKET_NAME(port) \
-    __attribute__((section(UDP_SOCKET_SECTION(port)))) 
+    __attribute__((section(UDP_SOCKET_SECTION(port))))
 
 /**
  * Defines an UDP socket.

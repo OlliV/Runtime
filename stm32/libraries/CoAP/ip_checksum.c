@@ -69,7 +69,7 @@ uint16_t ip_checksum(register uint32_t checksum, const void *data, size_t len) {
      * about 3-4 times as fast as the size-optimised one on large buffers.
      */
 #define OPTIMIZE_SIZE 1
-        
+
 #ifndef OPTIMIZE_SIZE
     // Process the data in 64 bit chunks, using LDM and ADC instructions
     {
@@ -78,6 +78,7 @@ uint16_t ip_checksum(register uint32_t checksum, const void *data, size_t len) {
         end -= 2 * sizeof(uint32_t) - 1;
 
         while (dp < end) {
+#if 0
 #if defined(__thumb__)
 # if defined(__ARM_ARCH_6M__)
             XXX DOES NOT WORK, CRASHES.  INVESTIGATE.
@@ -94,13 +95,15 @@ uint16_t ip_checksum(register uint32_t checksum, const void *data, size_t len) {
 #  error "Not implemented for ARMv7 yet.  Please do."
 # endif
 #else
+#endif /* XXX Remove */
+#endif /* -"- */
             register const uint16_t *hp = (const uint16_t *)dp;
             checksum += *hp++;
             checksum += *hp++;
             checksum += *hp++;
             checksum += *hp++;
             dp += 2 * sizeof(uint32_t);
-#endif
+//#endif
         }
 
         end += 2 * sizeof(uint32_t) - 1;
@@ -135,7 +138,7 @@ uint16_t ip_checksum(register uint32_t checksum, const void *data, size_t len) {
         checksum += *dp;
     }
 
-    // Add the half words together again, 
+    // Add the half words together again,
     // two times for the worst case, e.g.
     // 4ffff -> 10003 -> 4 or 5fffd -> 10002 -> 3
     {
@@ -158,11 +161,11 @@ uint16_t ip_checksum(register uint32_t checksum, const void *data, size_t len) {
 
 #include <stdio.h>
 
-static uint8_t test_vector[] = { 
+static uint8_t test_vector[] = {
     0xe3, 0x4f, 0x23, 0x96, 0x44, 0x27, 0x99, 0xf3,
 };
 
-static uint8_t test_vector2[] = { 
+static uint8_t test_vector2[] = {
     0xe3, 0x4f, 0x23, 0x96, 0x44, 0x27, 0x99, 0xf3, 0x01, 0x01, 0x10,
 };
 

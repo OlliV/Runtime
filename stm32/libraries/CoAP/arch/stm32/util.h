@@ -28,9 +28,17 @@
 
 #include <stm32f0xx.h>
 
-static inline htons(uint16_t s) { return __REV16(s); };
-static inline ntohs(uint16_t s) { return __REV16(s); };
-static inline htonl(uint32_t l) { return __REV(l);   };
-static inline ntohl(unit32_t l) { return __REV(l);   };
+/* Compile time */
+#define CONSTEXPR_HTONS(s) ((((s) >> 8) & 0xff) | (((s) << 8) & 0xff00))
+
+#ifndef EMULATOR
+
+/* Runtime */
+static inline int htons(uint16_t s) { return __REV16(s); };
+static inline int ntohs(uint16_t s) { return __REV16(s); };
+static inline int htonl(uint32_t l) { return __REV(l);   };
+static inline int ntohl(uint32_t l) { return __REV(l);   };
+
+#endif
 
 #endif//_ETHERNET_ARCH_UTIL_STM32_H_

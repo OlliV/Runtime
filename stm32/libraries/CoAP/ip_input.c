@@ -26,10 +26,7 @@
 #include <net_debug.h>
 #include <ip.h>
 
-
-struct in_addr ip_local_address = { .s_bytes = { 10, 0, 0, 2 } };
-
-static const union iph ip_header_mask = { 
+static const union iph ip_header_mask = {
     .iph = {
         /* First 32-bit word */
         .ip_vhl = -1, // must match
@@ -66,7 +63,7 @@ static const union iph ip_header_data = {
 /**
  * XXX
  */
-    
+
 # ifndef offsetof
 #  define offsetof(st, m) ((uint32_t)(&((st *)0)->m))
 # endif
@@ -85,7 +82,7 @@ void ip_input(struct ip *const iph) {
     if ((iphps[vhl_o2] & iphms[vhl_o2]) != iphds[vhl_o2]) {
         net_error("Dropping malformatted packet vhl. %04x & %04x != %04x\n",
               iphps[vhl_o2], iphms[vhl_o2], iphds[vhl_o2]);
-        return; 
+        return;
     }
 
     // Length and ID ignored
@@ -119,7 +116,7 @@ void ip_input(struct ip *const iph) {
     /*
      * Swap source and destination address for return packet.
      *
-     * If the upper layers need the src/dst information, they 
+     * If the upper layers need the src/dst information, they
      * must be written with this swapping in mind.
      */
     iph->ip_dst        = iph->ip_src;

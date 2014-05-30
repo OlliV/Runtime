@@ -40,13 +40,14 @@ struct modbus_error {
 struct __modbus_addr_desc {
     size_t mb_addr;
     void *mb_var;
-    size_t (*mb_handler)(const struct __modbus_addr_desc *desc, void * req,
-            size_t index);
+    size_t mb_acc;
+    size_t (*mb_handler)(const struct __modbus_addr_desc *desc,
+            struct modbus_frame *req, size_t index, int wr);
 };
 
-#define MODBUS_ADDR_NA 0x0
-#define MODBUS_ADDR_WR 0x1
-#define MODBUS_ADDR_RD 0x3
+#define MODBUS_NA 0x0
+#define MODBUS_RD 0x1
+#define MODBUS_WR 0x2
 
 #define __EXPAND_MBADDR_NAME(var) __modbus_addr_ ## var
 #define __MBADDR_SECTION  ".modbus.app_mem."
@@ -59,11 +60,12 @@ struct __modbus_addr_desc {
     DECLARE_MODBUS_ADDR(var);                                           \
     const struct __modbus_addr_desc __EXPAND_MBADDR_NAME(var)           \
         __attribute__((section(__MBADDR_SECTION))) = {                  \
-        .mb_addr = (addr), .mb_var = &(var), .mb_handler = (handler)    \
+        .mb_addr = (addr), .mb_var = &(var), .mb_acc = access,          \
+        .mb_handler = (handler)                                         \
     }
 
-#define DEFINE_MODBUS_IREGISTER(addr, var, access)                      \
-    DEFINE_MODBUS_ADDR((addr), var, (access), &modbus_iregister_handler)
+#define DEFINE_MODBUS_REGISTER(addr, var, access)                      \
+    DEFINE_MODBUS_ADDR((addr), var, (access), &modbus_reg_handler)
 
 # ifdef __cplusplus
 extern "C" {
@@ -71,10 +73,12 @@ extern "C" {
 typedef size_t (*modbus_fn_t)(struct modbus_frame *frame);
 
 size_t modbus_generror(struct modbus_error *errmsg, int8_t exception);
+size_t modbus_reg_handler(const struct __modbus_addr_desc *desc,
+        struct modbus_frame *req, size_t index, int wr);
 
 size_t modbus_read_iregisters(struct modbus_frame *frame);
-size_t modbus_iregister_handler(const struct __modbus_addr_desc *desc, void *req,
-        size_t index);
+
+size_t modbus_write_register(struct modbus_frame *frame);
 
 size_t modbus_read_devid(struct modbus_frame *frame);
 

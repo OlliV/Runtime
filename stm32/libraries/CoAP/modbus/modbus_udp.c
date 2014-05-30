@@ -14,25 +14,25 @@
 
 static const modbus_fn_t modbus_fn[25] = {
     /* Data Access */
-    [2]     = 0, /* Read Discrete Inputs */
-    [1]     = 0, /* Read Coils */
-    [5]     = 0, /* Write Single Coil */
-    [15]    = 0, /* Write Multiple Coils */
-    [4]     = modbus_read_iregisters, /* Read Input Registers */
-    [3]     = 0, /* Read Holding Registers */
-    [6]     = 0, /* Write Single Register */
-    [16]    = 0, /* Write Multiple Registers */
-    [23]    = 0, /* Read/Write Multiple Registers */
-    [22]    = 0, /* Mask Write Register */
-    [24]    = 0, /* Read FIFO Queue */
-    [20]    = 0, /* Read File Record */
-    [21]    = 0, /* Write File Record */
+    [2]     = 0,                        /* Read Discrete Inputs */
+    [1]     = 0,                        /* Read Coils */
+    [5]     = 0,                        /* Write Single Coil */
+    [15]    = 0,                        /* Write Multiple Coils */
+    [4]     = modbus_read_iregisters,   /* Read Input Registers */
+    [3]     = 0,                        /* Read Holding Registers */
+    [6]     = modbus_write_register,    /* Write Single Register */
+    [16]    = 0,                        /* Write Multiple Registers */
+    [23]    = 0,                        /* Read/Write Multiple Registers */
+    [22]    = 0,                        /* Mask Write Register */
+    [24]    = 0,                        /* Read FIFO Queue */
+    [20]    = 0,                        /* Read File Record */
+    [21]    = 0,                        /* Write File Record */
     /* Diagnostics */
-    [7]     = 0, /* Read Exception Status */
-    [8]     = 0, /* Diagnostic (Not valid for IP) */
-    [11]    = 0, /* Get Com Event Counter (!IP) */
-    [12]    = 0, /* Get Com Event Log (!IP) */
-    [17]    = 0, /* Report Server ID (!IP) */
+    [7]     = 0,                        /* Read Exception Status */
+    [8]     = 0,                        /* Diagnostic (Not valid for IP) */
+    [11]    = 0,                        /* Get Com Event Counter (!IP) */
+    [12]    = 0,                        /* Get Com Event Log (!IP) */
+    [17]    = 0,                        /* Report Server ID (!IP) */
 };
 
 static int ntohframe(uint8_t udp_payload[], uint16_t udp_payload_len)
@@ -96,6 +96,20 @@ size_t modbus_generror(struct modbus_error *errmsg, int8_t exception)
 {
     errmsg->fn_code += 0x80;
     errmsg->exception = exception;
+
+    return 1;
+}
+
+size_t modbus_reg_handler(const struct __modbus_addr_desc *desc,
+        struct modbus_frame *req, size_t index, int wr)
+{
+    if (!wr) { /* Read */
+        req->data[index]     = (*(uint16_t *)desc->mb_var & 0xff00) >> 8;
+        req->data[index + 1] = (*(uint16_t *)desc->mb_var & 0x00ff);
+    } else { /* Write */
+        *((uint16_t *)(desc->mb_var)) =
+            (req->data[index + 1] << 8) | (req->data[index]);
+    }
 
     return 2;
 }

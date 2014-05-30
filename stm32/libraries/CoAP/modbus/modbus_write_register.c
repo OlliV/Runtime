@@ -1,13 +1,13 @@
 #include "modbus_udp.h"
 
 struct mbu_request {
-    unsigned s_addr     : 16;
-    unsigned quant      : 16;
+    unsigned reg_addr   : 16;
+    unsigned reg_val    : 16;
 };
 
 struct mbu_response {
-    unsigned bcount     : 8;
-    uint8_t status[];
+    unsigned reg_addr   : 16;
+    unsigned reg_val    : 16;
 };
 
 #define MODBUS_GET_REQ(frame)   ((struct mbu_request *)((uint8_t *)(frame) + 8))
@@ -21,49 +21,37 @@ static struct mbu_request *ntohreq(struct modbus_frame *frame)
 {
     struct mbu_request *req = MODBUS_GET_REQ(frame);
 
-    req->s_addr = ntohs(req->s_addr);
-    req->quant = ntohs(req->quant);
+    req->reg_addr = ntohs(req->reg_addr);
+    req->reg_val = ntohs(req->reg_val);
 
     return req;
 }
 
 static void htonresp(struct modbus_frame *frame)
 {
-    /* NOP */
+    struct mbu_response *resp = MODBUS_GET_RESP(frame);
+
+    resp->reg_addr = htons(resp->reg_addr);
+    resp->reg_val = htons(resp->reg_val);
 }
 
-size_t modbus_read_iregisters(struct modbus_frame *frame)
+size_t modbus_write_register(struct modbus_frame *frame)
 {
     struct mbu_request *req = ntohreq(frame);
-    struct mbu_response *resp = MODBUS_GET_RESP(frame);
-    size_t addr = req->s_addr;
-    size_t wr = 0;
-
-    if (!(1 <= req->quant && req->quant <= 0x7D))
-        return modbus_generror(MODBUS_GET_ERR(frame), MODBUS_EX_ILLDV);
-
-    if ((addr + (size_t)req->quant) > 0xffff)
-        return modbus_generror(MODBUS_GET_ERR(frame), MODBUS_EX_ILLDA);
+    size_t addr = req->reg_addr;
 
     for (size_t i = 0; i < (__modbus_app_mem_end - __modbus_app_mem); i++) {
         const struct __modbus_addr_desc *mbad = &__modbus_app_mem[i];
         if (mbad->mb_addr == addr) {
             if (!mbad->mb_handler)
                 return modbus_generror(MODBUS_GET_ERR(frame), MODBUS_EX_SDV);
-            if (!(mbad->mb_acc & MODBUS_RD))
+            if (!(mbad->mb_acc & MODBUS_WR))
                 return modbus_generror(MODBUS_GET_ERR(frame), MODBUS_EX_ILLDA);
-            wr =+ mbad->mb_handler(mbad, frame, wr + 1, 0);
-        } else continue;
-        addr++;
-        if (addr > (req->s_addr + req->quant))
+            mbad->mb_handler(mbad, frame, 2, 1);
             break;
-    }
-    resp->bcount = wr;
-
-    if (wr == 0) {
-        return modbus_generror(MODBUS_GET_ERR(frame), MODBUS_EX_ILLDA);
+        }
     }
 
     htonresp(frame);
-    return wr + 1;
+    return 4;
 }

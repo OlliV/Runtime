@@ -24,7 +24,10 @@
 #define HELLO_WORLD "Hello, World!"
 
 int inputs;
-DEFINE_MODBUS_IREGISTER(0x06, inputs, MODBUS_ADDR_WR);
+DEFINE_MODBUS_REGISTER(0x06, inputs, MODBUS_RD);
+
+int outputs;
+DEFINE_MODBUS_REGISTER(0x07, outputs, MODBUS_RD | MODBUS_WR);
 
 
 /**

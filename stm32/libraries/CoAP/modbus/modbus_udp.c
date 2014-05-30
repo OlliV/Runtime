@@ -12,6 +12,10 @@
 #define num_elem(x) (sizeof(x) / sizeof(*(x)))
 #endif
 
+/**
+ * Array of supported Modbus functions.
+ * 0 = not supported/illegal function.
+ */
 static const modbus_fn_t modbus_fn[25] = {
     /* Data Access */
     [2]     = 0,                        /* Read Discrete Inputs */
@@ -43,8 +47,14 @@ static int ntohframe(uint8_t udp_payload[], uint16_t udp_payload_len)
     frame->prot_id = ntohs(frame->prot_id);
     frame->len = ntohs(frame->len);
 
-    if (frame->len < 2)
-        return 1; /* Minimum len is 2 */
+    /*
+     * Check that frame length is in specification.
+     * There is no way that a valid PDU could be shorter than 2 bytes and
+     * there is a maximum limit of 253 bytes for ADU, which makes maximum
+     * datagram length of 260 bytes with MBAP.
+     */
+    if (frame->len < 2 || udp_payload_len > 260)
+        return 1;
 
     return 0;
 }
